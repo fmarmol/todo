@@ -1,10 +1,24 @@
 syntax = 'proto3';
 
+package api;
+
 service ToDoApi {
-    rpc List() returns (TaskArray) {}
+    rpc List(Empty) returns (TaskArray) {}
     rpc Create(Task) returns (Error) {}
     rpc Update(Task) returns (Error) {}
     rpc Delete(Task) returns (Error) {}
+}
+
+message Empty {
+}
+
+message Error {
+    enum ErrorType {
+        SUCCESS = 0;
+        FAIL = 1;
+    }
+    ErrorType type = 1;
+    string description = 2;
 }
 
 message Task {
@@ -21,9 +35,9 @@ message Task {
         INPROGRESS = 1;
         DONE = 2;
     }
-    Priority priority=4;
-    Status status=5;
-    string subject=6;
+    Priority priority = 4;
+    Status status = 5;
+    string subject = 6;
 }
 
 message TaskArray {
