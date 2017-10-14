@@ -1,0 +1,18 @@
+version : '3.1'
+
+services:
+  postgres:
+    environment:
+      - POSTGRES_DBNAME=todo
+      - POSTGRES_USER
+      - POSTGRES_PASSWORD
+
+    volume:
+      todoapp-db:/var/lib/postgresql/data
+  todoapp:
+    environement:
+      - POSTGRES_USER
+      - POSTGRES_PASSWORD
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT
+
