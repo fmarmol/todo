@@ -1,0 +1,31 @@
+syntax = 'proto3';
+
+service ToDoApi {
+    rpc List() returns (TaskArray) {}
+    rpc Create(Task) returns (Error) {}
+    rpc Update(Task) returns (Error) {}
+    rpc Delete(Task) returns (Error) {}
+}
+
+message Task {
+    int32 uid = 1;
+    int64 start = 2;
+    int64 end = 3;
+    enum Priority {
+        LOW = 0;
+        MEDIUM = 1;
+        HIGH = 2;
+    }
+    enum Status {
+        TODO = 0;
+        INPROGRESS = 1;
+        DONE = 2;
+    }
+    Priority priority=4;
+    Status status=5;
+    string subject=6;
+}
+
+message TaskArray {
+    repeated Task Tasks = 1;
+}
