@@ -35,10 +35,10 @@ func NewServer(cfg *ConfigDB) *Server {
 		url,
 	)
 	if err != nil {
-		log.Fatalf("could not connecto to db: %v\n", url)
+		log.Fatalf("could not connect to db %v:%v\n", url, err)
 	}
 	if err := db.Ping(); err != nil {
-		log.Fatalf("could not ping db: %v\n", url)
+		log.Fatalf("could not ping db %v:%v\n", url, err)
 	}
 
 	_, err = db.Exec(

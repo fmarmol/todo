@@ -4,7 +4,6 @@ services:
   postgres:
     image: postgres:9.6
     environment:
-      - POSTGRES_DBNAME=todo
       - POSTGRES_USER
       - POSTGRES_PASSWORD
       - POSTGRES_DB=todo
