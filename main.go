@@ -44,7 +44,7 @@ func NewServer(cfg *ConfigDB) *Server {
 	_, err = db.Exec(
 		`CREATE TABLE IF NOT EXISTS tasks(
 			id SERIAL,
-			uid INT,
+			uid INT UNIQUE,
 			start_date TIMESTAMP,
 			end_date TIMESTAMP,
 			priority VARCHAR(10),
@@ -61,7 +61,7 @@ func NewServer(cfg *ConfigDB) *Server {
 
 // List implementation
 func (s *Server) List(ctx context.Context, i *api.Empty) (*api.TaskArray, error) {
-	rows, err := s.db.Query("SELECT uid, start, end, priority, status, subject FROM tasks;")
+	rows, err := s.db.Query("SELECT uid, start_date, end_date, priority, status, subject FROM tasks;")
 	if err != nil {
 		return nil, err
 	}
@@ -81,13 +81,33 @@ func (s *Server) List(ctx context.Context, i *api.Empty) (*api.TaskArray, error)
 }
 
 // Create implementation
-func (s *Server) Create(ctx context.Context, t *api.Task) (*api.Error, error) { return nil, nil }
+func (s *Server) Create(ctx context.Context, t *api.Task) (*api.Error, error) {
+	_, err := s.db.Exec("INSERT FROM tasks (uid,start_date,end_date,priority, status, subject) VALUES ($1,$2,$3,$4,$5i,$6)",
+		t.Uid, t.Start, t.End, t.Priority, t.Status, t.Subject)
+	if err != nil {
+		return &api.Error{Type: api.Error_FAIL, Description: err.Error()}, err
+	}
+	return &api.Error{Type: api.Error_SUCCESS}, nil
+}
 
 // Update implemenation
-func (s *Server) Update(ctx context.Context, t *api.Task) (*api.Error, error) { return nil, nil }
+func (s *Server) Update(ctx context.Context, t *api.Task) (*api.Error, error) {
+	_, err := s.db.Exec("UPDATE tasks SET start_date=$1, end_date=$2, priority=$3, status=$4, subject=$5 WHERE ui=$6",
+		t.Start, t.End, t.Priority, t.Status, t.Subject)
+	if err != nil {
+		return &api.Error{Type: api.Error_FAIL, Description: err.Error()}, err
+	}
+	return &api.Error{Type: api.Error_SUCCESS}, nil
+}
 
 // Delete implementation
-func (s *Server) Delete(ctx context.Context, t *api.Task) (*api.Error, error) { return nil, nil }
+func (s *Server) Delete(ctx context.Context, t *api.Task) (*api.Error, error) {
+	_, err := s.db.Exec("DELETE FROM tasks where uid=$1", t.Uid)
+	if err != nil {
+		return &api.Error{Type: api.Error_FAIL, Description: err.Error()}, err
+	}
+	return &api.Error{Type: api.Error_SUCCESS}, nil
+}
 
 // NewConfig creates a new config from os env variables
 func NewConfig() *ConfigDB {
