@@ -29,23 +29,24 @@ type Server struct {
 
 // NewServer creates a new server
 func NewServer(cfg *ConfigDB) *Server {
+	url := fmt.Sprintf("postgres://%v:%v@%v:%v/todo?sslmode=disable", cfg.User, cfg.Password, cfg.Host, cfg.Port)
 	db, err := sql.Open(
 		"postgres",
-		fmt.Sprintf("postgres://%v:%v@%v:%v/todo", cfg.User, cfg.Password, cfg.Host, cfg.Port),
+		url,
 	)
 	if err != nil {
-		log.Fatal("could not connecto to db")
+		log.Fatalf("could not connecto to db: %v\n", url)
 	}
 	if err := db.Ping(); err != nil {
-		log.Fatal("could not ping db")
+		log.Fatalf("could not ping db: %v\n", url)
 	}
 
 	_, err = db.Exec(
-		`CREATE TABLE IF NOT EXIST tasks(
+		`CREATE TABLE IF NOT EXISTS tasks(
 			id SERIAL,
 			uid INT,
-			start TIMESTAMP,
-			end TIMESTAMP,
+			start_date TIMESTAMP,
+			end_date TIMESTAMP,
 			priority VARCHAR(10),
 			status VARCHAR(10),
 			subject TEXT
@@ -59,7 +60,25 @@ func NewServer(cfg *ConfigDB) *Server {
 }
 
 // List implementation
-func (s *Server) List(ctx context.Context, i *api.Empty) (*api.TaskArray, error) { return nil, nil }
+func (s *Server) List(ctx context.Context, i *api.Empty) (*api.TaskArray, error) {
+	rows, err := s.db.Query("SELECT uid, start, end, priority, status, subject FROM tasks;")
+	if err != nil {
+		return nil, err
+	}
+
+	ret := &api.TaskArray{Tasks: []*api.Task{}}
+	for rows.Next() {
+		var task *api.Task
+		if err := rows.Scan(task.Uid, task.Start, task.End, task.Priority, task.Status, task.Subject); err != nil {
+			return nil, err
+		}
+		ret.Tasks = append(ret.Tasks, task)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	return ret, nil
+}
 
 // Create implementation
 func (s *Server) Create(ctx context.Context, t *api.Task) (*api.Error, error) { return nil, nil }
@@ -102,14 +121,14 @@ func main() {
 	port := flag.String("port", "", "postgres port")
 	user := flag.String("user", "", "postgres user")
 	password := flag.String("password", "", "postgres user's password")
-	flag.Usage()
+	flag.Parse()
 
 	cfg := NewConfig()
 	cfg.Update(*user, *password, *host, *port)
 
-	lis, err := net.Listen("tpc", ":"+*listen)
+	lis, err := net.Listen("tcp", ":"+*listen)
 	if err != nil {
-		log.Fatal()
+		log.Fatal(err)
 
 	}
 	defer lis.Close()

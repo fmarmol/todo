@@ -2,17 +2,29 @@ version : '3.1'
 
 services:
   postgres:
+    image: postgres:9.6
     environment:
       - POSTGRES_DBNAME=todo
       - POSTGRES_USER
       - POSTGRES_PASSWORD
-
-    volume:
-      todoapp-db:/var/lib/postgresql/data
-  todoapp:
-    environement:
+      - POSTGRES_DB=todo
+    ports:
+        - "5432:5432"
+    volumes:
+        - todoapp-db:/var/lib/postgresql/data
+  app:
+    build: .
+    environment:
       - POSTGRES_USER
       - POSTGRES_PASSWORD
       - POSTGRES_HOST=postgres
       - POSTGRES_PORT
+    links:
+        - postgres
+    depends_on:
+        - postgres
+    ports:
+        - "8080:8080"
+volumes:
+    todoapp-db:
 
