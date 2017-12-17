@@ -43,7 +43,7 @@ LOOP:
 	for i := 0; i < 3; i++ {
 		if err := db.Ping(); err != nil {
 			if i < 2 {
-				log.Println("trying to ping db:%v", url)
+				log.Printf("trying to ping db:%v\n", url)
 				time.Sleep(time.Second)
 			} else {
 				log.Fatalf("could not ping db %v:%v\n", url, err)

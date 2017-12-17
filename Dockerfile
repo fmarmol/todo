@@ -8,7 +8,7 @@ RUN go get  github.com/golang/protobuf/proto\
 COPY . .
 RUN GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -i 
 
-FROM golang:1.9-alpine
+FROM scratch
 
 WORKDIR /root/
 COPY --from=0 /go/src/github.com/fmarmol/todo/todo .
